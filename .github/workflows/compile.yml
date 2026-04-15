@@ -1,0 +1,35 @@
+name: Compile LaTeX and Send to Telegram
+
+on:
+  repository_dispatch:
+    types: [compile_pdf]
+
+jobs:
+  build_and_deliver:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Create LaTeX file
+        run: |
+          cat << 'EOF' > resume.tex
+          ${{ github.event.client_payload.latex_code }}
+          EOF
+
+      - name: Compile PDF using TeX Live
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: resume.tex
+          
+      - name: Send PDF and Source Code directly to Telegram
+        run: |
+          # Send the PDF file
+          curl -F chat_id="${{ github.event.client_payload.chat_id }}" \
+               -F document=@resume.pdf \
+               -F caption="✅ Here is your ready-to-apply PDF resume!" \
+               https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument
+               
+          # Send the raw .tex source code file
+          curl -F chat_id="${{ github.event.client_payload.chat_id }}" \
+               -F document=@resume.tex \
+               -F caption="📄 Raw LaTeX Source Code (Upload to Overleaf if you want to edit manually)" \
+               https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument
