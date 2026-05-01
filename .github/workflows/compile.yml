@@ -25,10 +25,15 @@ jobs:
           
       - name: Send PDF to Telegram
         run: |
-          curl -F chat_id="${{ github.event.client_payload.chat_id }}" \
-               -F document=@resume.pdf \
-               -F caption="✅ Here is your ready-to-apply PDF resume!" \
-               https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument
+          if [ -f "resume.pdf" ]; then
+            curl -F chat_id="${{ github.event.client_payload.chat_id }}" \
+                 -F document=@resume.pdf \
+                 -F caption="✅ Here is your ready-to-apply PDF resume!" \
+                 https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument
+          else
+            echo "PDF generation failed. Cannot send."
+            exit 1
+          fi
                
       - name: Send Source Code to Telegram
         if: always()
