@@ -15,20 +15,24 @@ jobs:
           ${{ github.event.client_payload.latex_code }}
           EOF
 
-      - name: Compile PDF using TeX Live
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: resume.tex
-          
-      - name: Send PDF and Source Code directly to Telegram
+      - name: Install Native TeX Live (Fast)
         run: |
-          # Send the PDF file
+          sudo apt-get update
+          sudo apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-latex-extra
+
+      - name: Compile PDF
+        run: pdflatex -interaction=nonstopmode -halt-on-error resume.tex
+          
+      - name: Send PDF to Telegram
+        run: |
           curl -F chat_id="${{ github.event.client_payload.chat_id }}" \
                -F document=@resume.pdf \
                -F caption="✅ Here is your ready-to-apply PDF resume!" \
                https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument
                
-          # Send the raw .tex source code file
+      - name: Send Source Code to Telegram
+        if: always()
+        run: |
           curl -F chat_id="${{ github.event.client_payload.chat_id }}" \
                -F document=@resume.tex \
                -F caption="📄 Raw LaTeX Source Code (Upload to Overleaf if you want to edit manually)" \
