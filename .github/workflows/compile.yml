@@ -15,10 +15,21 @@ jobs:
           ${{ github.event.client_payload.latex_code }}
           EOF
 
-      - name: Install Native TeX Live (Fast)
+      - name: Cache APT Packages
+        uses: actions/cache@v4
+        id: apt-cache
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-texlive
+          restore-keys: |
+            ${{ runner.os }}-apt-texlive
+
+      - name: Install Native TeX Live
         run: |
+          # Only download packages if they aren't fully cached
+          sudo rm -f /etc/apt/apt.conf.d/docker-clean
           sudo apt-get update
-          sudo apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-latex-extra
+          sudo apt-get install -y --no-install-recommends texlive-latex-base texlive-fonts-recommended texlive-latex-extra
 
       - name: Compile PDF
         run: pdflatex -interaction=nonstopmode -halt-on-error resume.tex
