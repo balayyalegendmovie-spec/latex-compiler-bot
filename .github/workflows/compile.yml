@@ -15,24 +15,13 @@ jobs:
           ${{ github.event.client_payload.latex_code }}
           EOF
 
-      - name: Cache APT Packages
-        uses: actions/cache@v4
-        id: apt-cache
+      - name: Setup Fast Tectonic Engine
+        uses: wtfjoke/setup-tectonic@v3
         with:
-          path: /var/cache/apt/archives
-          key: ${{ runner.os }}-apt-texlive
-          restore-keys: |
-            ${{ runner.os }}-apt-texlive
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Native TeX Live
-        run: |
-          # Only download packages if they aren't fully cached
-          sudo rm -f /etc/apt/apt.conf.d/docker-clean
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends texlive-latex-base texlive-fonts-recommended texlive-latex-extra
-
-      - name: Compile PDF
-        run: pdflatex -interaction=nonstopmode -halt-on-error resume.tex
+      - name: Compile PDF with Tectonic
+        run: tectonic resume.tex
           
       - name: Send PDF to Telegram
         run: |
