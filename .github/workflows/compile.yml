@@ -20,6 +20,18 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # -----------------------------------------------------------
+      # AGGRESSIVE TECTONIC CACHE 
+      # This stops Tectonic from downloading packages every run
+      # -----------------------------------------------------------
+      - name: Cache Tectonic Packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Tectonic
+          key: ${{ runner.os }}-tectonic-packages-${{ hashFiles('resume.tex') }}
+          restore-keys: |
+            ${{ runner.os }}-tectonic-packages-
+
       - name: Compile PDF with Tectonic
         run: tectonic resume.tex
           
